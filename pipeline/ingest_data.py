@@ -44,18 +44,12 @@ parse_dates = [
 def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
     year = 2021
     month = 1
-    pg_user = 'root'
-    pg_password = 'root'
-    pg_host = 'localhost'
-    pg_port = '5432'
-    pg_database = 'ny_taxi'
-    table_name = 'yellow_taxi_data'
     chunksize = 100000
     
     prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow'
     url = f'{prefix}/yellow_tripdata_{year}-{month:02d}.csv.gz'
 
-    engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}')
+    engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
 
     df = pd.read_csv(
         url,
@@ -66,7 +60,7 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
 
     #print(pd.io.sql.get_schema(df, name='yellow_taxi_data', con=engine))
 
-    df.head(n=0).to_sql(name=table_name, con=engine, if_exists='replace') #
+    df.head(n=0).to_sql(name=target_table, con=engine, if_exists='replace') #
 
     df_iter = pd.read_csv(
         url,
@@ -83,7 +77,7 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
         if first:
             # Create table schema (no data)
             df_chunk.head(0).to_sql(
-                name=table_name,
+                name=target_table,
                 con=engine,
                 if_exists="replace"
             )
@@ -92,7 +86,7 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
 
         # Insert chunk
         df_chunk.to_sql(
-            name=table_name,
+            name=target_table,
             con=engine,
             if_exists="append"
         )
